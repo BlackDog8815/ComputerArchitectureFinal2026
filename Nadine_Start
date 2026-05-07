@@ -22,7 +22,7 @@ Init_Stats:
 
 	MOV	R4, #100	@health = 100 
 	MOV	R5, #100	@ max health = 100
-	POP	{R4, R5, LR}
+	POP	{LR}
 	BX	LR
 /*--------------------------------------------------------
 * void Apply_Hazard(int damage)
@@ -79,7 +79,7 @@ Print_Status:
         MOV     R1, R4            @ R1 = current health
         BL      printf
 
-        POP     {R4, R5, LR}
+        POP     {LR}
         BX      LR
 /*------------------------------------------------------------------------
 * int Check_Death(void)
@@ -92,7 +92,7 @@ Check_Death:
 
 	CMP		R4, #0
 	MOVLE	R0, #1		@ if health <=0 = dead
-	MOVGT	R0,	#		@ if health >  = alive 
+	MOVGT	R0,	#0		@ if health >  = alive 
 
 	POP		{R4, R5, LR}
 	BX		LR
