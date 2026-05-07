@@ -1,40 +1,59 @@
 .data
 	format: .asciz "%c"
-	input: .space 4
+	input: .byte 0
+	wall_msg db "You hit a wall
+.text
 _input_handler:
 	push {lr}
 
 	ldr r0, =format
 	ldr r1, =input
-	bl scanf	
-	
-	ldr r1, =input
-	ldr r1, [r1]
-	
-	cmp r1, #'w' @movement up
+	bl scanf
+
+	ldr r0, =input @loading the register the input
+	ldrb r0, [r0]
+
+	pop {pc}
+
+
+bl _input_handler
+
+	cmp r0, #'w' @movement up
 	beq _up
 
-	cmp r1, #'a' @movement left
+	cmp r0, #'a' @movement left
 	beq _left
 
-	cmp r1, #'s' @movement down
+	cmp r0, #'s' @movement down
 	beq _down
 
-	cmp r1, #'d' @movement right
+	cmp r0, #'d' @movement right
 	beq _right
 
 _up:
-	add r0, r0, #1
+	cmp r2, #4
+	beq _wall
+	add r2, r2, #1
 	pop {lr}
 
 _left:
-	sub r1, r1, #1
+	cmp r3, #-4
+	beq _wall
+	sub r3, r3, #1
 	pop {lr}
 
 _down:
-	sub r0, r0, #1
+	cmp r2, #-4
+	beq _wall
+	sub r2, r2, #1
 	pop {lr}
 
 _right:
-	add r1, r1, #1
+	cmp r3, #4
+	beq _wall
+	add r3, r3, #1
+	pop {lr}
+
+_wall:
+	bl printf
 	pop {lr}
