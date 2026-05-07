@@ -1,0 +1,88 @@
+	.global Init_Stats
+	.global Apply_Hazard
+	.global Apply_Refill
+	.global Print_Status
+	.global Check_Death
+
+	.extern printf 
+
+	.data
+fmt_health:	.asciz "Health: %d\n"
+fmt_damage:	.asciz "You took %d damage!\n"
+fmt_heal:	.asciz "You gained %d health!\n"
+
+	.text
+
+/*-----------------------------------------------------
+* void Init_Stats(void)
+* - R4 = current health, R5 = max health
+*------------------------------------------------------*/
+Init_Stats:
+	PUSH	{R4, R5, LR}
+
+	MOV	R4, #100	@health = 100 
+	MOV	R5, #100	@ max health = 100
+	POP	{R4, R5, LR}
+	BX	LR
+/*--------------------------------------------------------
+* void Apply_Hazard(int damage)
+* Input: R0 = damage
+*---------------------------------------------------------*/
+Apply_Hazard:
+	PUSH	{R4, R5, LR}
+	MOV 	R2, R0		@ save damage in R2(Caller)
+
+	SUB 	R4, R4, R0	@ health -=damage
+	CMP	R4, #0		
+	BGE	ah_no_clamp
+	MOV	R4, #0 		@ clamp to 0 
+ah_no_clamp:
+	@prinf("You took %d damage!\n", damage);
+	LDR 	R0, =fmt_damage		@ R0 - format string 
+	MOV 	R1, R0			@(placeholder see below)
+
+	BL	printf
+	
+	POP	{R4, R5, LR}
+	BX	LR
+/*----------------------------------------------------------------
+* void Apply_Refill(int heal)
+* Input: R0 = heal amount
+* Effect: Health += HEAL, clamp at max, print message
+*-----------------------------------------------------------------------*/
+Appy_Refill:
+	PUSH	{R4, R5, R0}
+	
+	MOV 	R2, R0		@ save heal amount
+	
+	ADD	R4, R4, R0	@ Health = health + heal
+	CMP	R4, R5
+	BLE	ar_no_clamp
+	MOV 	R4, R5		@ clamp to max health
+ar_no_clamp:
+	@ prinf ("You gained %d health!\n", heal);
+	LDR	R0, =fmt_heal	@ R0 = format String
+	MOV	R1, R2		@ R1 = heal amount
+	BL	printf
+	
+	POP 	{R4, R5, LR}
+	BX	LR
+/*---------------------------------------------------------------------
+* void Print_Status(void)
+* Prints current health
+*----------------------------------------------------------------------*/
+Print_Status: 
+	PUSH	{R4, R5, LR}
+	
+	@ printf("Health: %d\n", health);
+	LDR     R0, =fmt_health   @ R0 = format string
+        MOV     R1, R4            @ R1 = current health
+        BL      printf
+
+        POP     {R4, R5, LR}
+        BX      LR
+
+
+
+
+
