@@ -43,7 +43,7 @@ ah_no_clamp:
 
 	BL	printf
 	
-	POP	{LR}		@possible R4
+	POP	{R4, LR}		@possible R4
 	BX	LR
 /*----------------------------------------------------------------
 * void Apply_Refill(int heal)
@@ -65,7 +65,7 @@ ar_no_clamp:
 	MOV	R1, R2		@ R1 = heal amount
 	BL	printf
 	
-	POP 	{LR}		@ possible R4
+	POP 	{R4, LR}		@ possible R4
 	BX	LR
 /*---------------------------------------------------------------------
 * void Print_Status(void)
@@ -79,7 +79,7 @@ Print_Status:
         MOV     R1, R4            @ R1 = current health
         BL      printf
 
-        POP     {LR}
+        POP     {R4, LR}
         BX      LR
 /*------------------------------------------------------------------------
 * int Check_Death(void)
