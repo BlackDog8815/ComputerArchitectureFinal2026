@@ -19,13 +19,10 @@ title_line5: .asciz "****************************************\n\n"
 
 start_msg:
 .asciz "Game Loading... Please wait.\n"
-
 ready_msg:
 .asciz "Your journey begins now!\n\n"
-
 win_msg:
 .asciz "\nCongratulations! You escaped the dungeon!\n"
-
 lose_msg:
 .asciz "\nYou have died in the dungeon.\n"
 
@@ -36,7 +33,6 @@ lose_msg:
 
 @ MAIN PROGRAM----------
 main:
-
     @ Save callee-saved registers and return address
     PUSH {R4-R8, LR}
     
@@ -80,10 +76,8 @@ main:
 	
     @ Initialize player X position
     MOV R4, #0
-
     @ Initialize player Y position
     MOV R5, #0
-
     @ Initialize player health
     MOV R6, #100
 
@@ -92,11 +86,9 @@ game_loop:
 
     @ ETHAN'S SECTION
     @ Movement / Map Logic
-    
     @ Inputs:
     @   R0 = Current X-coordinate
     @   R1 = Current Y-coordinate
-    @
     @ Expected Outputs:
     @   R0 = Updated X-coordinate
     @   R1 = Updated Y-coordinate
@@ -104,7 +96,6 @@ game_loop:
 
     MOV R0, R4
     MOV R1, R5
-
     BL  movement_subroutine
 
     @ Save updated coordinates
@@ -113,7 +104,6 @@ game_loop:
     
     @ NADINE'S SECTION
     @ Health / Attributes / Damage System
-    
     @ Input:
     @   R0 = Current Health
     @
@@ -121,7 +111,6 @@ game_loop:
     @   R0 = Updated Health
     
     MOV R0, R6
-
     BL  attribute_subroutine
 
     @ Save updated health
