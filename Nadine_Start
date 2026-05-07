@@ -39,11 +39,11 @@ Apply_Hazard:
 ah_no_clamp:
 	@prinf("You took %d damage!\n", damage);
 	LDR 	R0, =fmt_damage		@ R0 - format string 
-	MOV 	R1, R0			@(placeholder see below)
+	MOV 	R1, R2			@(placeholder see below)
 
 	BL	printf
 	
-	POP	{R4, R5, LR}
+	POP	{LR}		@possible R4
 	BX	LR
 /*----------------------------------------------------------------
 * void Apply_Refill(int heal)
@@ -65,7 +65,7 @@ ar_no_clamp:
 	MOV	R1, R2		@ R1 = heal amount
 	BL	printf
 	
-	POP 	{R4, R5, LR}
+	POP 	{LR}		@ possible R4
 	BX	LR
 /*---------------------------------------------------------------------
 * void Print_Status(void)
