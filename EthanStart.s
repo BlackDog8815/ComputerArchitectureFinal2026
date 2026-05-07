@@ -1,7 +1,7 @@
 .data
 	format: .asciz "%c"
 	input: .byte 0
-	wall_msg db "You hit a wall
+	wall_msg db "You hit a wall"
 .text
 _input_handler:
 	push {lr}
