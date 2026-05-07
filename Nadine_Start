@@ -50,7 +50,7 @@ ah_no_clamp:
 * Input: R0 = heal amount
 * Effect: Health += HEAL, clamp at max, print message
 *-----------------------------------------------------------------------*/
-Appy_Refill:
+Apply_Refill:
 	PUSH	{R4, R5, R0}
 	
 	MOV 	R2, R0		@ save heal amount
@@ -81,8 +81,24 @@ Print_Status:
 
         POP     {R4, R5, LR}
         BX      LR
+/*------------------------------------------------------------------------
+* int Check_Death(void)
+* Returns: 
+* R0 = 1 if health <= 0
+* R0 = 0 otherwise 
+*--------------------------------------------------------------------------*/
+Check_Death:
+	PUSH	{R4,R5,LR} 
+
+	CMP		R4, #0
+	MOVLE	R0, #1		@ if health <=0 = dead
+	MOVGT	R0,	#		@ if health >  = alive 
+
+	POP		{R4, R5, LR}
+	BX		LR
 
 
+	
 
 
 
