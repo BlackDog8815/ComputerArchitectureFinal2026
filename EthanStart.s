@@ -7,7 +7,10 @@ _input_handler:
 	ldr r0, =format
 	ldr r1, =input
 	bl scanf	
-
+	
+	ldr r1, =input
+	ldr r1, [r1]
+	
 	cmp r1, #'w' @movement up
 	beq _up
 
