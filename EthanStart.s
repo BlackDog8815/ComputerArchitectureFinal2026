@@ -1,5 +1,5 @@
 .data
-	format: .asciz "%d"
+	format: .asciz "%c"
 	input: .space 4
 _input_handler:
 	push {lr}
@@ -8,16 +8,16 @@ _input_handler:
 	ldr r1, =input
 	bl scanf	
 
-	cmp r1, #"w" @movement up
+	cmp r1, #'w' @movement up
 	beq _up
 
-	cmp r1, #"a" @movement left
+	cmp r1, #'a' @movement left
 	beq _left
 
-	cmp r1, #"s" @movement down
+	cmp r1, #'s' @movement down
 	beq _down
 
-	cmp r1, #"d" @movement right
+	cmp r1, #'d' @movement right
 	beq _right
 
 _up:
