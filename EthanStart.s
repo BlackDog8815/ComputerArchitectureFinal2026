@@ -6,7 +6,10 @@
 	go_left: .asciz "You go one room left\n"
 	go_up: .asciz "You go one room up\n"
 	go_down: .asciz "You go one room down\n"
+	
 .text
+.extern printf
+.extern scanf
 .global _input_handler
 _input_handler:
 	push {lr}
@@ -37,6 +40,15 @@ handle_input:
 	cmp r0, #'d' @movement right
 	beq _right
 
+	cmp r0, #'i' @inventory check
+	beq _inventory
+
+	cmp r0, #'s' @status check
+	beq _status
+
+	cmp r0, #'q' @quit game
+	beq _quit
+	
 	b _end
 
 _up:
