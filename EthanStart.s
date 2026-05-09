@@ -1,8 +1,13 @@
 .data
 	format: .asciz "%c"
 	input: .byte 0
-	wall_msg db "You hit a wall"
+	wall_msg: .asciz "You hit a wall\n"
+	go_right: .asciz "You go one room right\n"
+	go_left: .asciz "You go one room left\n"
+	go_up: .asciz "You go one room up\n"
+	go_down: .asciz "You go one room down\n"
 .text
+.global _input_handler
 _input_handler:
 	push {lr}
 
@@ -14,9 +19,11 @@ _input_handler:
 	ldrb r0, [r0]
 
 	pop {pc}
-
-
-bl _input_handler
+	
+.global handle_input
+handle_input:
+	push{lr}
+	bl _input_handler
 
 	cmp r0, #'w' @movement up
 	beq _up
@@ -30,30 +37,44 @@ bl _input_handler
 	cmp r0, #'d' @movement right
 	beq _right
 
+	b _end
+
 _up:
 	cmp r2, #4
-	beq _wall
+	bge _wall
 	add r2, r2, #1
-	pop {lr}
+	ldr r0, =go_up
+	bl printf
+	b _end
 
 _left:
 	cmp r3, #-4
-	beq _wall
+	ble _wall
 	sub r3, r3, #1
-	pop {lr}
+	ldr r0, =go_left
+	bl printf
+	b _end
 
 _down:
 	cmp r2, #-4
-	beq _wall
+	ble _wall
 	sub r2, r2, #1
-	pop {lr}
+	ldr r0, =go_down
+	bl printf
+	b _end
 
 _right:
 	cmp r3, #4
-	beq _wall
+	bge _wall
 	add r3, r3, #1
-	pop {lr}
+	ldr r0, =go_right
+	bl printf
+	b _end
 
 _wall:
+	ldr r0, =wall_msg
 	bl printf
-	pop {lr}
+	b _end
+
+_end:
+	pop{pc}
