@@ -1,5 +1,7 @@
 .data
 	format: .asciz "%c"
+	x_coord: .space 4
+	y_coord: .space 4
 	input: .byte 0
 	wall_msg: .asciz "You hit a wall\n"
 	go_right: .asciz "You go one room right\n"
@@ -57,6 +59,7 @@ _up:
 	add r2, r2, #1
 	ldr r0, =go_up
 	bl printf
+	str r2, =y_coord
 	b _end
 
 _left:
@@ -65,6 +68,7 @@ _left:
 	sub r3, r3, #1
 	ldr r0, =go_left
 	bl printf
+	str r3, =x_coord
 	b _end
 
 _down:
@@ -73,6 +77,7 @@ _down:
 	sub r2, r2, #1
 	ldr r0, =go_down
 	bl printf
+	str r2, =y_coord
 	b _end
 
 _right:
@@ -81,6 +86,7 @@ _right:
 	add r3, r3, #1
 	ldr r0, =go_right
 	bl printf
+	str r3, =x_coord
 	b _end
 
 _wall:
