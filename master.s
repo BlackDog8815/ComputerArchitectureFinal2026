@@ -210,7 +210,6 @@ Check_Death:
     POP     {R4, R5, LR}
     BX      LR
 
-
 @ MOVEMENT SECTION (Ethan)
 
 _input_handler:
@@ -315,7 +314,6 @@ _left:
     LDR r0, =go_left
     BL  printf
     B   _end
-
 	
 _down:
     CMP R7, #-4
