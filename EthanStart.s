@@ -1,18 +1,18 @@
 .data
-	format: .asciz "%c"
-	x_coord: .space 4
-	y_coord: .space 4
-	input: .byte 0
-	wall_msg: .asciz "You hit a wall\n"
-	go_right: .asciz "You go one room right\n"
-	go_left: .asciz "You go one room left\n"
-	go_up: .asciz "You go one room up\n"
-	go_down: .asciz "You go one room down\n"
-	inv_title:     .asciz "Inventory:\n"
-	inv_sword:     .asciz "- Sword\n"
-	inv_potion:    .asciz "- Potion\n"
-	inv_key:       .asciz "- Key\n"
-	inv_empty:     .asciz "- Empty\n"
+	x_coord: 		.space 4
+	y_coord: 		.space 4
+	input: 			.byte 0
+	format: 		.asciz "%c"
+	wall_msg: 		.asciz "You hit a wall\n"
+	go_right: 		.asciz "You go one room right\n"
+	go_left: 		.asciz "You go one room left\n"
+	go_up: 			.asciz "You go one room up\n"
+	go_down: 		.asciz "You go one room down\n"
+	inv_title:      .asciz "Inventory:\n"
+	inv_sword:      .asciz "- Sword\n"
+	inv_potion:     .asciz "- Potion\n"
+	inv_key:        .asciz "- Key\n"
+	inv_empty:      .asciz "- Empty\n"
 .text
 .extern printf
 .extern scanf
