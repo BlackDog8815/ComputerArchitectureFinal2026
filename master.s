@@ -241,7 +241,7 @@ handle_input:
 	CMP r0, #'p' @status check
 	BEQ Print_Status
 	CMP r0, #'q' @quit game
-	BEQ _quit
+	BEQ end_program
     B   _end             @ Default case (Invalid input).
     
 _inventory:
