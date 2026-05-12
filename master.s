@@ -141,7 +141,10 @@ end_program:
     MOV R0, #0      @ Return code 0 (Success).
     @ POP {PC}: Pops the saved LR directly into the Program Counter.
     @ This causes the CPU to jump back to the OS instruction that called 'main'.
-    POP {R4-R8, PC} 
+    POP {R4-R8, PC}
+	MOV r0, #0      @ Exit status 0
+	MOV r7, #1      @ Syscall number for exit
+	SVC 0    
 
 @ ATTRIBUTES SECTION (Nadine)
 
@@ -237,7 +240,7 @@ handle_input:
     CMP r0, #'i'         
     BEQ _inventory
 	CMP r0, #'p' @status check
-	BEQ _status
+	BEQ Print_Status
 	CMP r0, #'q' @quit game
 	BEQ _quit
     B   _end             @ Default case (Invalid input).
