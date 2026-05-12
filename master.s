@@ -301,34 +301,34 @@ _inventory_done:
     
 _up:
     @ --- BOUNDARY VALIDATION ---
-    CMP r2, #4           @ Boundary: Coordinate Max.
+    CMP R7, #4           @ Boundary: Coordinate Max.
     BGE _wall            @ BGE: Branch if Greater or Equal. Prevents going to Y=5.
-    ADD r2, r2, #1       
+    ADD R7, R7, #1       
     LDR r0, =go_up
     BL  printf
     B   _end
 	
 _left:
-    CMP r3, #-4          @ Boundary: Coordinate Min.
+    CMP R6, #-4          @ Boundary: Coordinate Min.
     BLE _wall            @ BLE: Branch if Less or Equal. Prevents going to X=-5.
-    SUB r3, r3, #1       
+    SUB R6, R6, #1       
     LDR r0, =go_left
     BL  printf
     B   _end
 
 	
 _down:
-    CMP r2, #-4
+    CMP R7, #-4
     BLE _wall
-    SUB r2, r2, #1
+    SUB R7, R7, #1
     LDR r0, =go_down
     BL  printf
     B   _end
 	
 _right:
-    CMP r3, #4
+    CMP R6, #4
     BGE _wall
-    ADD r3, r3, #1
+    ADD R6, R6, #1
     LDR r0, =go_right
     BL  printf
     B   _end
