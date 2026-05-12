@@ -8,7 +8,11 @@
 	go_left: .asciz "You go one room left\n"
 	go_up: .asciz "You go one room up\n"
 	go_down: .asciz "You go one room down\n"
-	
+	inv_title:     .asciz "Inventory:\n"
+	inv_sword:     .asciz "- Sword\n"
+	inv_potion:    .asciz "- Potion\n"
+	inv_key:       .asciz "- Key\n"
+	inv_empty:     .asciz "- Empty\n"
 .text
 .extern printf
 .extern scanf
@@ -45,14 +49,65 @@ handle_input:
 	cmp r0, #'i' @inventory check
 	beq _inventory
 
-	cmp r0, #'s' @status check
+	cmp r0, #'p' @status check
 	beq _status
 
 	cmp r0, #'q' @quit game
 	beq _quit
 	
 	b _end
+	
+_inventory:
+    push {lr}
 
+    ldr r0, =inv_title
+    bl printf
+
+    ldr r1, =inventory
+
+    @ sword
+    ldr r2, [r1]
+    cmp r2, #1
+    bne _check_potion
+
+    ldr r0, =inv_sword
+    bl printf
+
+_check_potion:
+    ldr r2, [r1, #4]
+    cmp r2, #1
+    bne _check_key
+
+    ldr r0, =inv_potion
+    bl printf
+
+_check_key:
+    ldr r2, [r1, #8]
+    cmp r2, #1
+    bne _check_empty
+
+    ldr r0, =inv_key
+    bl printf
+    b _inventory_done
+
+_check_empty:
+    ldr r2, [r1]
+    ldr r3, [r1, #4]
+    ldr r4, [r1, #8]
+
+    add r2, r2, r3
+    add r2, r2, r4
+
+    cmp r2, #0
+    bne _inventory_done
+
+    ldr r0, =inv_empty
+    bl printf
+
+_inventory_done:
+    pop {lr}
+    b _end
+	
 _up:
 	cmp r2, #4
 	bge _wall
