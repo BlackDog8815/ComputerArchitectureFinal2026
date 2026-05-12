@@ -89,13 +89,12 @@ main:
     MOV R6, #0      @ Initialize X at origin
     MOV R7, #0      @ Initialize Y at origin
 
-
-game_loop:
     @ HUD
 	@ 1. STATUS OUTPUT
     @ Subroutine uses R4 to display vitality status.
     BL  Print_Status
-
+	
+game_loop:
     @ 4. MOVEMENT (Ethan)
 	@ 2. DATA HANDOFF (Context Switching)
     @ Ethan's code expects data in R2 and R3. We "hand off" our state.
@@ -141,7 +140,7 @@ end_program:
     MOV R0, #0      @ Return code 0 (Success).
     @ POP {PC}: Pops the saved LR directly into the Program Counter.
     @ This causes the CPU to jump back to the OS instruction that called 'main'.
-    POP {R4-R8, PC}
+    @POP {R4-R8, PC}
 	MOV r0, #0      @ Exit status 0
 	MOV r7, #1      @ Syscall number for exit
 	SVC 0    
