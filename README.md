@@ -1,8 +1,8 @@
 # ComputerArchitectureFinal2026
 
 
-cd ~/CmpE3780@spencerFileLocation
-
+cd ~/CmpE3780
+            @spencerFileLocation
 
 rm dungeon
 
