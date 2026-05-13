@@ -248,22 +248,22 @@ Apply_Hazard:
     MOVLT   R4, #0       @ Conditional Move: If health < 0, set to 0.
     
     MOV     R1, R0       @ Copy damage value to R1 for conversion in printf.
-    LDR     R0, =fmt_damage
+    LDR     R0, =fmt_damage    @ prints meesage for the amount of damage taken.
     BL      printf
-    POP     {R0, R1, PC}
+    POP     {R0, R1, PC}    @ pc is poped to return to main function. 
 
 Print_Status:
     PUSH    {LR}
     LDR     R0, =fmt_health
-    MOV     R1, R4       @ Load vitality from R4 into 2nd argument register.
+    MOV     R1, R4       @ Load vitality(current amount of health) from R4 into 2nd argument register.
     BL      printf
-    POP     {PC}
+    POP     {PC}        @ return to main function
 
 Check_Death:
-    @ returns 1 (Dead) or 0 (Alive) based on CPSR flags.
+    @ returns 1 (Dead) or 0 (Alive) based on CPSR flags(N/Z).
     CMP     R4, #0
-    MOVLE   R0, #1       @ Move if Less or Equal to zero.
-    MOVGT   R0, #0       @ Move if Greater Than zero.
+    MOVLE   R0, #1       @ Move if Less or Equal to zero. labels it as 1 meaning dead 
+    MOVGT   R0, #0       @ Move if Greater Than zero. labels it as 0 meaning alive
     BX      LR           @ Branch Exchange: Faster return for simple flags.
 
 
