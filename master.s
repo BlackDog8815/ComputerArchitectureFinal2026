@@ -99,14 +99,10 @@ game_loop:
 	@ 2. DATA HANDOFF (Context Switching)
     @ Ethan's code expects data in R2 and R3. We "hand off" our state.
     @ ETHAN'S CODE USES R2/R3 INTERNALLY, SO WE LOAD COORDINATES THERE
-    MOV R2, R7 @ R2 = Y
-    MOV R3, R6 @ R3 = X
     BL  handle_input
 	
 	@ 3. STATE UPDATE
     @ We retrieve the modified coordinates from the "worker" registers.
-    MOV R7, R2 @ UPDATE Y FROM ETHAN'S R2
-    MOV R6, R3 @ UPDATE X FROM ETHAN'S R3
     
     @ 5. STATUS CHECK (Nadine)
     @ 4. CONDITION FLAG CHECKING
@@ -165,7 +161,7 @@ Apply_Hazard:
     SUB     R4, R4, R0   @ Arithmetic: Health = Health - Damage.
 	
     @ --- CLAMPING (Hard Limits) ---
-    CMP     R4, #0      
+    CMP     R4, #0 		@ limits health to 0 so no negative health
     BGE     ah_no_clamp  @ BGE: Branch if Greater or Equal (checks N and V flags).
     MOV     R4, #0       @ If negative, overwrite R4 with 0.
 	
