@@ -1,44 +1,60 @@
-@ CmpE 3780 Final Project: The Dungeon Crawl
-@ Combined Master File
-@ Team: Spencer, Ethan, Nadine
+@ CmpE 3780 FINAL PROJECT: THE PLATTEVILLE CRAWL - STABLE MASTER
+@ Authors: Spencer, Ethan, Nadine
+@ Date: May 12, 2026
+@ Architecture: ARMv7 (32-bit Little Endian)
 
 .data
-@ --- SPENCER'S DATA ---
-@ .asciz: Allocates memory for a string and appends a 0x00 (Null) byte.
-@ This is crucial because C functions like 'printf' scan memory until they hit 0x00.
+@ --- SECTION 1: SPENCER'S DATA SEGMENT (Global Memory) ---
+@ .asciz allocates bytes for a string and adds a null-terminator (0x00).
+@ Hardware Context: Libc functions like printf scan memory until they find 0x00.
+
 title_line1: .asciz "\n****************************************\n"
-title_line2: .asciz "*         THE PLATTEVILLE CRAWL        *\n"
+title_line2: .asciz "*          THE PLATTEVILLE CRAWL        *\n"
 title_line3: .asciz "*    By: Spencer, Ethan, and Nadine    *\n"
 title_line4: .asciz "*       CmpE 3780 - Spring 2026        *\n"
 title_line5: .asciz "****************************************\n\n"
 start_msg:   .asciz "Game Loading... Please wait.\n"
+
+@ Control scheme instructions for the user.
+intro_msg:   .asciz "HOW TO PLAY:\n - Use 'w', 'a', 's', 'd' to move\n - 'q' to Quit\n - Press 'Enter' after every key\n\n"
+
+@ MAP LEGEND: Critical coordinates for the quest.
+legend_msg:  .asciz "Map Legend:\n - Bounds: (-4,-4) to (4,4)\n - Items: Sword(-2,2), Potion(2,-2), Key(0,3)\n - Goal: Collect all 3 & reach (4,4)\n\n"
+
+@ HUD STRINGS: %d is a token for signed decimal integers converted to ASCII by printf.
+move_msg:    .asciz "Moves remaining: %d | Position: (%d, %d)\n"
+trap_msg:    .asciz "!!!! TRAP TRIGGERED !!!!\n"
 ready_msg:   .asciz "Your journey begins now!\n\n"
 win_msg:     .asciz "\nCongratulations! You escaped the dungeon!\n"
 lose_msg:    .asciz "\nYou have died in the dungeon.\n"
+need_items:  .asciz "The exit at (4,4) is locked! You need all 3 items to leave.\n"
 
-@ --- NADINE'S DATA ---
-@ %d: Tells printf to pop a value from a register (R1, R2, etc.) and convert 
-@ the binary integer into ASCII text for the monitor.
+@ SPECIFIC ITEM FEEDBACK
+found_sword:  .asciz ">>> You found the Legendary Sword! <<<\n"
+found_potion: .asciz ">>> You found a Healing Potion! <<<\n"
+found_key:    .asciz ">>> You found the Dungeon Key! <<<\n"
+
+@ --- SECTION 2: NADINE'S DATA (Formatting & Health) ---
 fmt_health:  .asciz "Health: %d\n"
 fmt_damage:  .asciz "You took %d damage!\n"
-fmt_heal:    .asciz "You gained %d health!\n"
 
-@ --- ETHAN'S DATA ---
-@ .byte: Allocates exactly 8 bits.
-@ .word: Allocates 32 bits. 
-format:      .asciz " %c"  @ ADDED SPACE BEFORE %C TO SKIP NEWLINES IN SCANF
-input:       .byte 0
-inventory:   .word 0, 0, 0 @ ADDED MISSING INVENTORY SPACE
-wall_msg:    .asciz "You hit a wall\n"
-go_right:    .asciz "You go one room right\n"
-go_left:     .asciz "You go one room left\n"
-go_up:       .asciz "You go one room up\n"
-go_down:     .asciz "You go one room down\n"
+@ --- SECTION 3: ETHAN'S DATA (Input & Storage) ---
+@ " %c": The space is a directive for scanf to discard leading whitespace/newlines.
+format:      .asciz " %c"  
+input:       .byte 0       @ Allocates exactly 8 bits for single character input buffer.
+inventory:   .word 0, 0, 0 @ 32-bit words: [0]=Sword, [1]=Potion, [2]=Key. Offset 4 bytes each.
+
+wall_msg:    .asciz "You hit a wall!\n"
 inv_title:   .asciz "Inventory:\n"
 inv_sword:   .asciz "- Sword\n"
 inv_potion:  .asciz "- Potion\n"
 inv_key:     .asciz "- Key\n"
 inv_empty:   .asciz "- Empty\n"
+
+go_up:       .asciz "You go North\n"
+go_down:     .asciz "You go South\n"
+go_left:     .asciz "You go West\n"
+go_right:    .asciz "You go East\n"
 
 .text
 .global main
@@ -46,21 +62,19 @@ inv_empty:   .asciz "- Empty\n"
 .extern sleep
 .extern scanf
 
+
 @ MAIN PROGRAM (Spencer)
 
 main:
     @ --- STACK INITIALIZATION ---
-    @ PUSH {registers, LR}: Creates a stack frame. 
-    @ LR (Link Register) must be saved because 'BL' will overwrite it.
-    PUSH {R4-R8, LR}
+    @ PUSH {R4-R11, LR}: Saves callee-saved registers to comply with AAPCS.
+    @ LR (Link Register) is saved so that BL calls don't lose the return address to the OS.
+    PUSH {R4-R11, LR}
     
-    @ --- PRINTF INTERFACING ---
-    @ LDR R0, =label: Loads the memory ADDRESS of the string into R0.
-    @ R0 is the 'First Argument' register in AAPCS.
-    
-    @ 1. DISPLAY TITLE SCREEN
+    @ --- DISPLAY BOOT SCREEN ---
+    @ LDR R0, =label: Loads the 32-bit address of the string into R0 (1st argument register).
     LDR R0, =title_line1
-    BL  printf
+    BL  printf           @ Branch with Link: PC jumps to printf, LR saves next line address.
     LDR R0, =title_line2
     BL  printf
     LDR R0, =title_line3
@@ -69,269 +83,261 @@ main:
     BL  printf
     LDR R0, =title_line5
     BL  printf
-    LDR R0, =start_msg
+    LDR R0, =intro_msg
+    BL  printf
+    LDR R0, =legend_msg
     BL  printf
     
-    @ 2. TIME DELAY
-    @ --- SYSTEM CALLS (Delay) ---
-    MOV R0, #3      @ Argument for sleep() is seconds.
+    @ --- TIME DELAY (Requirement) ---
+    MOV R0, #3           @ Load immediate value 3 (seconds) for sleep parameter.
     BL  sleep
 
-    LDR R0, =ready_msg
-    BL  printf
-    
-    @ 3. INITIALIZE STATE
-    @ --- REGISTER ALIASING (Game State) ---
-    @ R4: Health Accumulator (Varies 0-100)
-    @ R6: X-Coordinate (Varies -4 to 4)
-    @ R7: Y-Coordinate (Varies -4 to 4)
+    @ --- INITIALIZE GAME STATE (Register Aliasing) ---
+    @ R4: Global Health tracker (Preserved across function calls).
+    @ R6: Global X-Coordinate.
+    @ R7: Global Y-Coordinate.
+    @ R8: Move Limit Counter.
     BL  Init_Stats
-    MOV R6, #0      @ Initialize X at origin
-    MOV R7, #0      @ Initialize Y at origin
+    MOV R6, #0           @ Set initial X to origin.
+    MOV R7, #0           @ Set initial Y to origin.
+    MOV R8, #50          @ Set move budget to 50.
 
-    @ HUD
-	@ 1. STATUS OUTPUT
-    @ Subroutine uses R4 to display vitality status.
-    BL  Print_Status
-	
 game_loop:
-    @ 4. MOVEMENT (Ethan)
-	@ 2. DATA HANDOFF (Context Switching)
-    @ Ethan's code expects data in R2 and R3. We "hand off" our state.
-    @ ETHAN'S CODE USES R2/R3 INTERNALLY, SO WE LOAD COORDINATES THERE
-    BL  handle_input
-	
-	@ 3. STATE UPDATE
-    @ We retrieve the modified coordinates from the "worker" registers.
+    @ --- HUD RENDERING ---
+    LDR R0, =move_msg
+    MOV R1, R8           @ Register R1: 2nd argument (decimal moves).
+    MOV R2, R6           @ Register R2: 3rd argument (X position).
+    MOV R3, R7           @ Register R3: 4th argument (Y position).
+    BL  printf
+
+    BL  Print_Status     @ Displays health status via R4.
+
+    @ --- PLAYER ACTION (Ethan) ---
+    BL  handle_input     @ Call the input dispatcher subroutine.
     
-    @ 5. STATUS CHECK (Nadine)
-    @ 4. CONDITION FLAG CHECKING
-    @ BL Check_Death updates R0. 
+    @ --- UPDATE GAME CLOCK ---
+    SUB R8, R8, #1       @ Arithmetic subtraction: Decrement moves remaining.
+    CMP R8, #0           @ Compare current moves to zero to update CPSR flags.
+    BLE lose_game        @ Branch if Less or Equal: Player is out of moves.
+
+    @ --- COLLISION & TRIGGER SCAN (Spencer) ---
+    BL  check_tiles      @ Subroutine to check current (X,Y) for pickups/traps.
+    
+    @ --- STATUS CHECK (Nadine) ---
     BL  Check_Death
-    CMP R0, #1      @ CMP performs a subtraction (R0 - 1) and updates CPSR flags.
-    BEQ lose_game   @ BEQ checks the 'Z' (Zero) flag in the CPSR.
+    CMP R0, #1           @ Boolean return in R0: 1 = dead, 0 = alive.
+    BEQ lose_game
 
+    @ --- WIN CONDITION: EXIT PORTAL AT (4,4) ---
+    @ Logic: Nested comparisons simulate a logical AND gate.
+    CMP R6, #4           @ Check if X coordinate is 4.
+    BNE game_loop        @ If X != 4, reset the loop for next input.
+    CMP R7, #4           @ If X is 4, check if Y is 4.
+    BNE game_loop        @ If Y != 4, reset the loop.
 
-    @ 5. WIN CONDITION (Double Comparison)
-    @ To win, both X and Y must be 4. This is an "AND" logic gate.
-    CMP R6, #4      
-    BNE game_loop   @ If X != 4, restart loop immediately (Branch Not Equal).
-    CMP R7, #4      
-    BEQ win_game    @ If X was 4 AND Y is 4, exit loop to win.
+    @ --- QUEST ITEM GATE ---
+    @ Verifies the player has set the flags for all 3 items in memory.
+    LDR R1, =inventory   @ Load the base address of the inventory array.
+    LDR R2, [R1]         @ Load Sword status (Index 0).
+    LDR R3, [R1, #4]     @ Load Potion status (Index 1 - 4 byte offset).
+    LDR R5, [R1, #8]     @ Load Key status (Index 2 - 8 byte offset).
     
-    B   game_loop   @ Default branch (Unconditional).
+    AND R2, R2, R3       @ Logical AND: Accumulate bits.
+    AND R2, R2, R5       @ Result is 1 only if all three items were found (1).
+    CMP R2, #1           @ Compare the result of the AND accumulation to 1.
+    BEQ win_game
+    
+    @ Fall-through: Reached (4,4) without collecting all quest items.
+    LDR R0, =need_items
+    BL  printf
+    B   game_loop        @ Restart turn.
 
 win_game:
     LDR R0, =win_msg
     BL  printf
-    B   end_program
+    B   end_program      @ Terminate game.
 
 lose_game:
     LDR R0, =lose_msg
     BL  printf
-    B   end_program
+    B   end_program      @ Terminate game.
+
+@ EXIT LOGIC: SYSTEM CLEANUP
 
 end_program:
-    @ --- CLEAN EXIT ---
-    MOV R0, #0      @ Return code 0 (Success).
-    @ POP {PC}: Pops the saved LR directly into the Program Counter.
-    @ This causes the CPU to jump back to the OS instruction that called 'main'.
-    @POP {R4-R8, PC}
-	MOV r0, #0      @ Exit status 0
-	MOV r7, #1      @ Syscall number for exit
-	SVC 0    
+    @ --- CLEAN EXIT (Linux EABI) ---
+    MOV R0, #0           @ Load Success status code (0) into R0.
+    MOV R7, #1           @ Load Linux syscall number for sys_exit (1) into R7.
+    SVC 0                @ Supervisor Call: Transfers control to kernel to quit.
 
-@ ATTRIBUTES SECTION (Nadine)
+@ SUBROUTINES: TILE LOGIC & HAZARDS (Spencer)
+
+check_tiles:
+    PUSH {LR}            @ Subroutines calling printf MUST save the Link Register.
+    LDR  R1, =inventory
+    
+    @ --- SWORD Pickup Logic at (-2, 2) ---
+    CMP R6, #-2
+    BNE _skip_sword
+    CMP R7, #2
+    BNE _skip_sword
+    LDR R2, [R1]         @ Check if Sword is already in inventory.
+    CMP R2, #1
+    BEQ _skip_sword      @ If item exists, skip re-pickup.
+    MOV R2, #1
+    STR R2, [R1]         @ Store Word: Write 1 to the first slot of inventory.
+    LDR R0, =found_sword
+    BL  printf
+_skip_sword:
+
+    @ --- POTION Pickup Logic at (2, -2) ---
+    CMP R6, #2
+    BNE _skip_potion
+    CMP R7, #-2
+    BNE _skip_potion
+    LDR R2, [R1, #4]     @ Use offset to check Potion slot.
+    CMP R2, #1
+    BEQ _skip_potion
+    MOV R2, #1
+    STR R2, [R1, #4]     @ Update Potion status in RAM.
+    LDR R0, =found_potion
+    BL  printf
+_skip_potion:
+
+    @ --- KEY Pickup Logic at (0, 3) ---
+    CMP R6, #0
+    BNE _chk_trap
+    CMP R7, #3
+    BNE _chk_trap
+    LDR R2, [R1, #8]     @ Check Key slot via 8-byte offset.
+    CMP R2, #1
+    BEQ _chk_trap
+    MOV R2, #1
+    STR R2, [R1, #8]     @ Update Key status in RAM.
+    LDR R0, =found_key
+    BL  printf
+
+_chk_trap:
+    @ --- TRAP Hazard Logic at (2, 2) ---
+    CMP R6, #2
+    BNE _skip_all
+    CMP R7, #2
+    BNE _skip_all
+    LDR R0, =trap_msg
+    BL  printf
+    MOV R0, #15          @ Load damage amount into R0 for the hazard routine.
+    BL  Apply_Hazard     @ Jump to Nadine's vitality module.
+
+_skip_all:
+    POP {PC}             @ Restore LR directly into Program Counter to return.
+
+@ SUBROUTINES: ATTRIBUTES & VITALITY (Nadine)
 
 Init_Stats:
-@    PUSH    {R4, R5, LR}
-    @ !!! IMPORTANT FIX: REMOVED R4 AND R5 FROM POP !!!
-    @ IF WE POP R4/R5 HERE, WE OVERWRITE THE 100 WE JUST SET WITH OLD DATA.
-    @ TO MAKE HEALTH "STICK", WE ONLY PUSH/POP THE LINK REGISTER (LR).
     PUSH    {LR}
-    MOV     R4, #100    @ Current HP
-    MOV     R5, #100    @ Max HP limit
-	POP     {PC}        @ Return to main with R4/R5 intact.
-@   POP     {R4, R5, LR} @ !!! CHANGED: THIS WIPES DATA, RECOMEND REMOVING R4,R5 FROM POP !!!
-@   BX      LR          @ BX LR: Branch Exchange to the address in the Link Register.
+    MOV     R4, #100     @ Initialize Global Health (R4 is preserved by printf).
+    MOV     R5, #100     @ Max Health Constant (used for clamping).
+    POP     {PC}
 
 Apply_Hazard:
-    PUSH    {R4, R5, LR} 
-    MOV     R2, R0       @ R0 is volatile; move damage amount to R2 for safekeeping.
-    SUB     R4, R4, R0   @ Arithmetic: Health = Health - Damage.
-	
-    @ --- CLAMPING (Hard Limits) ---
-    CMP     R4, #0 		@ limits health to 0 so no negative health
-    BGE     ah_no_clamp  @ BGE: Branch if Greater or Equal (checks N and V flags).
-    MOV     R4, #0       @ If negative, overwrite R4 with 0.
-	
-ah_no_clamp:
-    LDR     R0, =fmt_damage     
-    MOV     R1, R2       @ Move saved damage to R1 for printf display.
+    PUSH    {R0, R1, LR} @ Save damage value (R0) and return address.
+    SUB     R4, R4, R0   @ Perform subtraction: R4 = R4 - R0.
+    
+    @ --- CLAMPING: Prevent Negative Health ---
+    CMP     R4, #0
+    MOVLT   R4, #0       @ Conditional Move: If health < 0, set to 0.
+    
+    MOV     R1, R0       @ Copy damage value to R1 for conversion in printf.
+    LDR     R0, =fmt_damage
     BL      printf
-    POP     {R4, R5, LR} @ !!! CHANGED: REMOVED ONE REGISTER FROM POP TO MATCH PUSH AND PREVENT CRASH !!!
-    BX      LR
-
-Apply_Refill:
-    PUSH    {R4, R5, LR} @ !!! CHANGED: PUSHED LR TO MATCH THE POP AT END !!!
-    MOV     R2, R0
-    ADD     R4, R4, R0
-
-    @ --- OVERFLOW PREVENTION ---
-    CMP     R4, R5       @ Compare new health to Max Health (100).
-    BLE     ar_no_clamp  @ BLE: Branch if Less or Equal.
-    MOV     R4, R5       @ Cap health at the value in R5.
-     
-ar_no_clamp:
-    LDR     R0, =fmt_heal
-    MOV     R1, R2
-    BL      printf
-    POP     {R4, R5, LR} @ !!! CHANGED: BALANCED THE STACK TO PREVENT SEGFAULT !!!
-    BX      LR
+    POP     {R0, R1, PC}
 
 Print_Status:
-    PUSH    {R4, R5, LR}
+    PUSH    {LR}
     LDR     R0, =fmt_health
-    MOV     R1, R4
+    MOV     R1, R4       @ Load vitality from R4 into 2nd argument register.
     BL      printf
-    POP     {R4, R5, LR} @ !!! CHANGED: BALANCED STACK SO PRINT DOES NOT CRASH !!!
-    BX      LR
+    POP     {PC}
 
 Check_Death:
-    @ Logic: Returns a "boolean" (1 or 0) in R0.
-    PUSH    {R4, R5, LR} 
-    CMP     R4, #0       
-    MOVLE   R0, #1       @ MOVLE: Conditional Move (Move if Less or Equal).
-    MOVGT   R0, #0       @ MOVGT: Conditional Move (Move if Greater Than).
-    POP     {R4, R5, LR}
-    BX      LR
+    @ returns 1 (Dead) or 0 (Alive) based on CPSR flags.
+    CMP     R4, #0
+    MOVLE   R0, #1       @ Move if Less or Equal to zero.
+    MOVGT   R0, #0       @ Move if Greater Than zero.
+    BX      LR           @ Branch Exchange: Faster return for simple flags.
 
-@ MOVEMENT SECTION (Ethan)
+
+@ SUBROUTINES: INPUT & MOVEMENT (Ethan)
 
 _input_handler:
-    @ --- LIBC INPUT WRAPPER ---
+    @ --- LIBC WRAPPER FOR USER INPUT ---
     PUSH {lr}
-    LDR r0, =format      @ Point to " %c"
-    LDR r1, =input       @ Point to memory address for storage.
-    BL  scanf            @ scanf(format, &input)
-    LDR r0, =input       
-    LDRB r0, [r0]        @ LDRB: Load Byte. Retrieves the ASCII value from memory.
-    POP {pc} 
-    
-handle_input:
-    PUSH {lr}
-    BL _input_handler    @ Character now sits in R0.
+    LDR r0, =format      @ Load address of " %c".
+    LDR r1, =input       @ Load address of the 1-byte storage buffer.
+    BL  scanf            @ Standard C library call: scanf("%c", &input).
+    LDR r0, =input
+    LDRB r0, [r0]        @ Load Byte: Get the ASCII character back into R0.
+    POP {pc}
 
-    @ --- DISPATCHER TABLE (Pseudo-Switch) ---
-    CMP r0, #'w'         @ Compare to ASCII hex for 'w'.
-    BEQ _up
-    CMP r0, #'a'
+handle_input:
+    PUSH {LR}
+    BL _input_handler    @ Call input wrapper; char returned in R0.
+
+    @ --- DISPATCHER TABLE (Branch Selector) ---
+    CMP r0, #'w'         @ Compare char in R0 to literal ASCII 'w'.
+    BEQ _up              @ Branch if Equal.
+    CMP r0, #'a'         @ Compare to ASCII 'a'.
     BEQ _left
-    CMP r0, #'s'
+    CMP r0, #'s'         @ Compare to ASCII 's'.
     BEQ _down
-    CMP r0, #'d'
+    CMP r0, #'d'         @ Compare to ASCII 'd'.
     BEQ _right
-    CMP r0, #'i'         
-    BEQ _inventory
-	CMP r0, #'p' @status check
-	BEQ Print_Status
-	CMP r0, #'q' @quit game
-	BEQ end_program
-    B   _end             @ Default case (Invalid input).
-    
-_inventory:
-    @ --- MEMORY OFFSETTING ---
-    PUSH {lr}
-    LDR r0, =inv_title
-    BL printf
-    LDR r1, =inventory
-    
-    @ Check Index 0 (Sword)
-    LDR r2, [r1]         @ Load word from base address.
-    CMP r2, #1
-    BNE _check_potion
-    LDR r0, =inv_sword
-    BL printf
-	
-_check_potion:
-    @ Check Index 1 (Potion)
-    LDR r2, [r1, #4]     @ Load word from address (Base + 4 bytes).
-    CMP r2, #1
-    BNE _check_key
-    LDR r0, =inv_potion
-    BL printf
-	
-_check_key:
-    @ Check Index 2 (Key)
-    LDR r2, [r1, #8]     @ Load word from address (Base + 8 bytes).
-    CMP r2, #1
-    BNE _check_empty
-    LDR r0, =inv_key
-    BL printf
-	
-    @ !!! IMPORTANT FIX: MODULAR RETURN !!!
-    @ INSTEAD OF BRANCHING TO _END (WHICH HAS AN EXTRA POP), WE POP HERE.
-    POP {lr}
-    B _end
-	
-_check_empty:
-    @ Summation logic: If R2+R3+R4 == 0, no items are present.
-    @ !!! IMPORTANT FIX: CHANGED R4 TO R8 !!!
-    @ R4 IS YOUR GLOBAL HEALTH REGISTER. IF YOU LOAD THE KEY INTO R4, 
-    @ THE PLAYER'S HEALTH WILL BECOME '1' OR '0' IMMEDIATELY.
-    LDR r2, [r1]
-    LDR r3, [r1, #4]
-    LDR r8, [r1, #8]     @ Use R8 instead of R4 to protect player health.
-    ADD r2, r2, r3
-    ADD r2, r2, r8       @ Sum with R8.
-    
-    CMP r2, #0
-    BNE _inventory_done
-    LDR r0, =inv_empty
-    BL printf
-	
-_inventory_done:
-    POP {lr}
-    B _end
-    
+    CMP r0, #'i'         @ Compare to ASCII 'i'.
+    BEQ _end             @ Redirected to prevent crashes from old inventory code.
+    CMP r0, #'q'         @ Compare to ASCII 'q'.
+    BEQ end_program
+    B   _end             @ Branch if no match (Unknown key).
+
 _up:
-    @ --- BOUNDARY VALIDATION ---
-    CMP R7, #4           @ Boundary: Coordinate Max.
-    BGE _wall            @ BGE: Branch if Greater or Equal. Prevents going to Y=5.
-    ADD R7, R7, #1       
+    @ --- Y-AXIS BOUNDARY CHECK ---
+    CMP R7, #4           @ Check if player is already at North limit (4).
+    BGE _wall            @ If Y >= 4, branch to wall collision message.
+    ADD R7, R7, #1       @ If safe, increment Y coordinate.
     LDR r0, =go_up
     BL  printf
     B   _end
-	
+
 _left:
-    CMP R6, #-4          @ Boundary: Coordinate Min.
-    BLE _wall            @ BLE: Branch if Less or Equal. Prevents going to X=-5.
-    SUB R6, R6, #1       
+    @ --- X-AXIS BOUNDARY CHECK ---
+    CMP R6, #-4          @ Check West limit (-4).
+    BLE _wall            @ If X <= -4, branch to wall collision message.
+    SUB R6, R6, #1       @ Decrement X coordinate.
     LDR r0, =go_left
     BL  printf
     B   _end
-	
+
 _down:
-    CMP R7, #-4
+    @ --- Y-AXIS BOUNDARY CHECK ---
+    CMP R7, #-4          @ Check South limit (-4).
     BLE _wall
     SUB R7, R7, #1
     LDR r0, =go_down
     BL  printf
     B   _end
-	
+
 _right:
-    CMP R6, #4
+    @ --- X-AXIS BOUNDARY CHECK ---
+    CMP R6, #4           @ Check East limit (4).
     BGE _wall
     ADD R6, R6, #1
     LDR r0, =go_right
     BL  printf
     B   _end
-	
+
 _wall:
-    @ UI Feedback for out-of-bounds error.
+    @ Boundary feedback for the player.
     LDR r0, =wall_msg
-    BL printf
+    BL  printf
 
 _end:
-    @ --- RETURN TO CALLER ---
-    POP {pc}
+    POP {PC}             @ Exit subroutine; return control to the game_loop.
