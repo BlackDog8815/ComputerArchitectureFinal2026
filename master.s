@@ -105,7 +105,7 @@ main:
 game_loop:
     @ --- HUD RENDERING ---
     LDR R0, =move_msg
-    MOV R1, R8           @ Register R1: 2nd argument (decimal moves).
+    MOV R1, R8           @ Register R1: 2nd argument (decimal moves). updates "d%" so you can print message again 
     MOV R2, R6           @ Register R2: 3rd argument (X position).
     MOV R3, R7           @ Register R3: 4th argument (Y position).
     BL  printf
@@ -167,9 +167,9 @@ check_tiles:
     CMP R7, #2
     BNE _skip_sword
     LDR R2, [R1]         @ Check if Sword is already in inventory.
-    CMP R2, #1
+    CMP R2, #1            @Boolean statement 1 = have sword, 0 = no sword 
     BEQ _skip_sword      @ If item exists, skip re-pickup.
-    MOV R2, #1
+    MOV R2, #1           @ puts sword in 
     STR R2, [R1]         @ Store Word: Write 1 to the first slot of inventory.
     LDR R0, =found_sword
     BL  printf
@@ -219,13 +219,15 @@ _skip_all:
 @ SUBROUTINES: ATTRIBUTES & VITALITY (Nadine)
 
 Init_Stats:
-    PUSH    {LR}
+    PUSH    {LR}        @ save the return address so we can return the main 
     MOV     R4, #100     @ Initialize Global Health (R4 is preserved by printf).
-    MOV     R5, #100     @ Max Health Constant (used for clamping).
-    POP     {PC}
+    MOV     R5, #100     @ Max Health Constant (used for clamping). (changed?)
+    POP     {PC}        @ returns info back to main. pops the program counter to where the LR was and starts working instantly with update.
 
 Apply_Hazard:
-    PUSH    {R0, R1, LR} @ Save damage value (R0) and return address.
+    PUSH    {R0, R1, LR} @ Save damage value (R0) and return address. R1 is push to keep the invetnory so it's not lost. 
+    @ better version: MOV R1, R0 so you dont have to push R0. not added due to needing a running program. 
+    @ better version: PUSH {R1, LR} which would change the SUB R4, R4, R1
     SUB     R4, R4, R0   @ Perform subtraction: R4 = R4 - R0.
     
     @ --- CLAMPING: Prevent Negative Health ---
@@ -238,9 +240,9 @@ Apply_Hazard:
     POP     {R0, R1, PC}    @ pc is poped to return to main function. 
 
 Print_Status:
-    PUSH    {LR}
+    PUSH    {LR}        @ saves return address 
     LDR     R0, =fmt_health
-    MOV     R1, R4       @ Load vitality(current amount of health) from R4 into 2nd argument register.
+    MOV     R1, R4       @ Load vitality(current amount of health) from R4 into 2nd argument register due to not linked to inventory yet. 
     BL      printf
     POP     {PC}        @ return to main function
 
@@ -249,7 +251,7 @@ Check_Death:
     CMP     R4, #0
     MOVLE   R0, #1       @ Move if Less or Equal to zero. labels it as 1 meaning dead 
     MOVGT   R0, #0       @ Move if Greater Than zero. labels it as 0 meaning alive
-    BX      LR           @ Branch Exchange: Faster return for simple flags.
+    BX      LR           @ Branch Exchange: Faster return for simple flags. returning to main without pop due to no pushing. (not a subrountine)
 
 
 @ SUBROUTINES: INPUT & MOVEMENT (Ethan)
