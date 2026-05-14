@@ -236,7 +236,7 @@ _skip_all:
 Init_Stats:
     PUSH    {LR}        @ save the return address so we can return the main 
     MOV     R4, #100     @ Initialize Global Health (R4 is preserved by printf).
-    MOV     R5, #100     @ Max Health Constant (used for clamping). (changed?)
+    @ MOV     R5, #100     @ Max Health Constant (used for clamping). (changed?) ##############CHANGED  
     POP     {PC}        @ returns info back to main. pops the program counter to where the LR was and starts working instantly with update.
 
 Apply_Hazard:
