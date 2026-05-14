@@ -135,22 +135,7 @@ game_loop:
     CMP R7, #4           @ If X is 4, check if Y is 4.
     BNE game_loop        @ If Y != 4, reset the loop.
 
-    @ --- QUEST ITEM GATE ---
-    @ Verifies the player has set the flags for all 3 items in memory.
-    LDR R1, =inventory   @ Load the base address of the inventory array.
-    LDR R2, [R1]         @ Load Sword status (Index 0).
-    LDR R3, [R1, #4]     @ Load Potion status (Index 1 - 4 byte offset).
-    LDR R5, [R1, #8]     @ Load Key status (Index 2 - 8 byte offset).
-    
-    AND R2, R2, R3       @ Logical AND: Accumulate bits.
-    AND R2, R2, R5       @ Result is 1 only if all three items were found (1).
-    CMP R2, #1           @ Compare the result of the AND accumulation to 1.
-    BEQ win_game
-    
-    @ Fall-through: Reached (4,4) without collecting all quest items.
-    LDR R0, =need_items
-    BL  printf
-    B   game_loop        @ Restart turn.
+
 
 win_game:
     LDR R0, =win_msg
