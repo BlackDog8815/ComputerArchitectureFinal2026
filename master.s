@@ -24,6 +24,7 @@ legend_msg:  .asciz "Map Legend:\n - Bounds: (-4,-4) to (4,4)\n - Items: Sword(-
 @ HUD STRINGS: %d is a token for signed decimal integers converted to ASCII by printf.
 move_msg:    .asciz "Moves remaining: %d | Position: (%d, %d)\n"
 trap_msg:    .asciz "!!!! TRAP TRIGGERED !!!!\n"
+death_trap_msg: .asciz "!!!! YOU FELL INTO A BOTTOMLESS PIT. DEATH IS INSTANT. !!!!\n"
 ready_msg:   .asciz "Your journey begins now!\n\n"
 win_msg:     .asciz "\nCongratulations! You escaped the dungeon!\n"
 lose_msg:    .asciz "\nYou have died in the dungeon.\n"
@@ -227,7 +228,17 @@ _chk_trap:
     BL  printf
     MOV R0, #15          @ Load damage amount into R0 for the hazard routine.
     BL  Apply_Hazard     @ Jump to Nadine's vitality module.
-
+    
+@ --- DEATH TRAP at (-3, -3) ---
+    CMP R6, #-3
+    BNE _skip_all
+    CMP R7, #-3
+    BNE _skip_all
+    LDR R0, =death_trap_msg
+    BL  printf
+    MOV R4, #0           @ Zero out health directly — instant kill.
+    B   _skip_all
+    
 _skip_all:
     POP {PC}             @ Restore LR directly into Program Counter to return.
 
