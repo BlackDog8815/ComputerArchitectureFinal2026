@@ -221,15 +221,16 @@ _skip_potion:
 _chk_trap:
     @ --- TRAP Hazard Logic at (2, 2) ---
     CMP R6, #2
-    BNE _skip_all
+    BNE _death_trap
     CMP R7, #2
-    BNE _skip_all
+    BNE _death_trap
     LDR R0, =trap_msg
     BL  printf
     MOV R0, #15          @ Load damage amount into R0 for the hazard routine.
     BL  Apply_Hazard     @ Jump to Nadine's vitality module.
     
 @ --- DEATH TRAP at (-3, -3) ---
+_death_trap:
     CMP R6, #-3
     BNE _skip_all
     CMP R7, #-3
