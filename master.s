@@ -101,7 +101,7 @@ main:
     BL  Init_Stats
     MOV R6, #0           @ Set initial X to origin.
     MOV R7, #0           @ Set initial Y to origin.
-    MOV R8, #50          @ Set move budget to 50.
+    MOV R8, #30          @ Set move budget to 50.
 
 game_loop:
     @ --- HUD RENDERING ---
@@ -246,7 +246,7 @@ _skip_all:
 
 Init_Stats:
     PUSH    {LR}        @ save the return address so we can return the main 
-    MOV     R4, #100     @ Initialize Global Health (R4 is preserved by printf).
+    MOV     R4, #50     @ Initialize Global Health (R4 is preserved by printf).
     @ MOV     R5, #100     @ Max Health Constant (used for clamping). (changed?) ##############CHANGED  
     POP     {PC}        @ returns info back to main. pops the program counter to where the LR was and starts working instantly with update.
 
